@@ -1,5 +1,8 @@
-vendor/
-var/
-node_modules/
+.git
+vendor
+node_modules
 .env.local
 .env.dev
+Dockerfile
+docker-compose.yml
+README.md
