@@ -23,8 +23,11 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 # Install the PHP dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Ensure the SQLite database file exists (if not already present in the source code)
-RUN mkdir -p var/db && touch var/db/app.db
+# Ensure the SQLite database file exists and set proper permissions
+RUN mkdir -p var/db && touch var/db/app.db && chown -R www-data:www-data var/db && chmod -R 755 var/db
+
+# Clear cache to ensure everything is initialized correctly
+RUN php bin/console cache:clear --env=prod
 
 # Expose port 8000 for the Symfony application
 EXPOSE 8000
