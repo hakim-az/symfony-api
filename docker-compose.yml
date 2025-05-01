@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: symfony-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./var:/app/var  # Persist var/ directory (including SQLite database)
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+    depends_on:
+      - db
+
+  db:
+    image: nouchka/sqlite3
+    container_name: sqlite-db
+    volumes:
+      - ./var/db:/var/db  # Store SQLite DB file in a persistent volume
+    command: ["sqlite3", "/var/db/tasks.db"]
+    environment:
+      - SQLITE_DATABASE=tasks.db
