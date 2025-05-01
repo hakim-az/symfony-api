@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     libsqlite3-dev \
+    curl \
     && docker-php-ext-install pdo pdo_sqlite
+
+# Install Symfony CLI globally
+RUN curl -sS https://get.symfony.com/cli/installer | bash \
+    && mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
 
 # Set working directory
 WORKDIR /app
