@@ -1,4 +1,4 @@
-# Use official PHP image
+# Use an official PHP image with required extensions
 FROM php:8.1-cli
 
 # Install system dependencies
@@ -6,41 +6,28 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     libsqlite3-dev \
-    && docker-php-ext-install pdo pdo_sqlite \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Composer globally
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Create non-root user
-RUN useradd -m appuser
+    && docker-php-ext-install pdo pdo_sqlite
 
 # Set working directory
 WORKDIR /app
 
-# Copy composer files first (for caching)
+# Copy composer.json and composer.lock first
 COPY composer.* ./
 
-# Allow symfony/flex plugin for this project (non-root config)
-RUN composer config --global allow-plugins.symfony/flex true
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install PHP dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+# Install dependencies (without dev, with auto-scripts)
+RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Copy the rest of the application code
+# Copy the rest of the app
 COPY . .
 
-# Set permissions for var/ directory
-RUN mkdir -p var && chmod -R 777 var
+# Ensure var/ directory and tasks.db are writable (for SQLite)
+RUN mkdir -p var && touch var/tasks.db && chmod -R 777 var
 
-# Change ownership of app files to appuser
-RUN chown -R appuser:appuser /app
-
-# Expose port (if needed)
+# Expose port
 EXPOSE 8000
 
-# Switch to non-root user
-USER appuser
-
-# Run Symfony app using PHP's built-in server
+# Command to run Symfony app
 CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
