@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: symfony-app
+    env: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: DATABASE_URL
+        value: "sqlite:///%kernel.project_dir%/var/tasks.db"
+    disk:
+      name: sqlite-disk
+      mountPath: /app/var
+      sizeGB: 1
