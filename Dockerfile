@@ -1,31 +1,33 @@
-# Base PHP image with necessary extensions
-FROM php:8.2-cli
+# Use an official PHP image with required extensions
+FROM php:8.1-cli
 
-# Install system dependencies and PHP extensions
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
     unzip \
+    git \
     libsqlite3-dev \
-    libzip-dev \
     && docker-php-ext-install pdo pdo_sqlite
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory inside container
+# Set working directory
 WORKDIR /app
 
-# Copy application files
+# Copy composer.json and composer.lock
+COPY composer.* ./
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Install dependencies (without dev + skip auto-scripts)
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+
+# Copy rest of the app
 COPY . .
 
-# Install Composer dependencies (production mode)
-RUN composer install --no-interaction --optimize-autoloader --no-dev
-
-# Ensure var/ directory and tasks.db are writable (SQLite needs write perms)
+# Ensure var/ directory and tasks.db are writable (for SQLite)
 RUN mkdir -p var && touch var/tasks.db && chmod -R 777 var
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port (optional if using built-in server)
+EXPOSE 8000
 
-# Start Symfony app using built-in PHP server (prod mode)
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+# Command to run Symfony app (can be customized)
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
