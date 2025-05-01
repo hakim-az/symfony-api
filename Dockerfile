@@ -11,23 +11,23 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy composer.json and composer.lock
-COPY composer.* ./
-
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install dependencies (without dev + skip auto-scripts)
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+# Copy composer.json and composer.lock
+COPY composer.* ./
 
-# Copy rest of the app
+# Install dependencies (without dev, with auto-scripts)
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Copy the rest of the app
 COPY . .
 
 # Ensure var/ directory and tasks.db are writable (for SQLite)
 RUN mkdir -p var && touch var/tasks.db && chmod -R 777 var
 
-# Expose port (optional if using built-in server)
+# Expose port
 EXPOSE 8000
 
-# Command to run Symfony app (can be customized)
+# Command to run Symfony app
 CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
